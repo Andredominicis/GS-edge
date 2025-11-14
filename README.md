@@ -254,9 +254,11 @@ O painel mostrará o estado do buzzer em tempo real.
 
 Você pode ativar via:
 
-✔ FIWARE API
-✔ IoT Agent
-✔ MQTT Publish Manual
+ FIWARE API
+ IoT Agent
+ MQTT Publish Manual
+
+ link do projeto no Wokwi: https://wokwi.com/projects/447548990685211649
 
 Se tudo estiver ok, o buzzer toca e o site exibe o status em tempo real.
 
