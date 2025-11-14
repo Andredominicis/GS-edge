@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SkillShift - Status do Buzzer</title>
+
+  <style>
+    body {
+      margin: 0;
+      height: 100vh;
+      background: linear-gradient(135deg, #3e1aff 0%, #1f0044 40%, #0c001e 100%);
+      font-family: 'Poppins', sans-serif;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      overflow: hidden;
+      position: relative;
+    }
+
+    /* Efeito de manchas fluidas estilo SkillShift */
+    .blob {
+      position: absolute;
+      width: 500px;
+      height: 500px;
+      background: radial-gradient(circle, rgba(98,0,255,0.55), rgba(0,0,0,0));
+      border-radius: 50%;
+      filter: blur(90px);
+      animation: float 10s infinite alternate;
+    }
+
+    .blob2 {
+      position: absolute;
+      width: 600px;
+      height: 600px;
+      background: radial-gradient(circle, rgba(0,174,255,0.45), rgba(0,0,0,0));
+      border-radius: 50%;
+      filter: blur(110px);
+      animation: float2 12s infinite alternate;
+    }
+
+    @keyframes float {
+      0% { transform: translate(-200px, -150px); }
+      100% { transform: translate(-100px, -50px); }
+    }
+
+    @keyframes float2 {
+      0% { transform: translate(200px, 150px); }
+      100% { transform: translate(80px, 20px); }
+    }
+
+    /* --- TÍTULO --- */
+    h1 {
+      font-size: 3.8em;
+      margin: 0;
+      font-weight: 700;
+      letter-spacing: 2px;
+      background: linear-gradient(90deg, #3bb6ff, #9b4dff);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      text-shadow: 0 0 18px rgba(130, 90, 255, 0.6);
+      animation: fadeIn 2s ease;
+      z-index: 10;
+    }
+
+    h2 {
+      margin-top: 10px;
+      font-weight: 300;
+      opacity: 0.9;
+      letter-spacing: 1px;
+      font-size: 1.3em;
+      z-index: 10;
+    }
+
+    /* --- CAIXA DO STATUS --- */
+    .status-box {
+      margin-top: 35px;
+      padding: 40px 85px;
+      border-radius: 20px;
+      font-size: 2.2em;
+      font-weight: 600;
+      backdrop-filter: blur(25px);
+      background: rgba(255, 255, 255, 0.06);
+      border: 2px solid rgba(255, 255, 255, 0.12);
+      box-shadow: 0 0 25px rgba(112, 32, 255, 0.35);
+      transition: 0.4s ease;
+      text-align: center;
+      z-index: 10;
+    }
+
+    /* Ativo */
+    .ativo {
+      background: rgba(255, 0, 70, 0.40);
+      border-color: rgba(255, 0, 100, 0.7);
+      box-shadow: 0 0 45px rgba(255, 0, 90, 0.9);
+      animation: pulse 1.3s infinite;
+    }
+
+    /* Inativo */
+    .inativo {
+      background: rgba(63, 0, 255, 0.35);
+      border-color: rgba(120, 0, 255, 0.65);
+      box-shadow: 0 0 30px rgba(60, 0, 255, 0.7);
+    }
+
+    footer {
+      position: absolute;
+      bottom: 15px;
+      opacity: 0.8;
+      font-size: 0.9em;
+      letter-spacing: 1px;
+      z-index: 10;
+    }
+
+    /* Animações */
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(-12px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    @keyframes pulse {
+      0%, 100% { transform: scale(1); }
+      50% { transform: scale(1.03); }
+    }
+
+  </style>
+</head>
+<body>
+
+  <!-- Blobs de fundo estilo SkillShift -->
+  <div class="blob"></div>
+  <div class="blob2"></div>
+
+  <h1>SkillShift</h1>
+  <h2>Status do Buzzer</h2>
+
+  <div id="statusBuzzer" class="status-box inativo">
+    Carregando...
+  </div>
+
+  <footer>
+    Projeto desenvolvido por André Monteiro (RM 5623) — SkillShift
+  </footer>
+
+  <!-- Som -->
+  <audio id="alertSound" src="https://actions.google.com/sounds/v1/alarms/beep_short.ogg"></audio>
+
+  <script>
+    let ultimoEstado = 0;
+
+    function atualizarStatus() {
+      fetch("http://44.223.43.74:1026/v2/entities/urn:ngsi-ld:device:2007/attrs/a", {
+        method: "GET",
+        headers: {
+          "Fiware-Service": "smart",
+          "Fiware-ServicePath": "/",
+          "Accept": "application/json"
+        }
+      })
+      .then(r => r.json())
+      .then(data => {
+        const valor = data.value;
+        const box = document.getElementById("statusBuzzer");
+        const som = document.getElementById("alertSound");
+
+        if (valor === 1) {
+          box.textContent = " Buzzer Ativado!";
+          box.className = "status-box ativo";
+
+          if (ultimoEstado === 0) {
+            som.currentTime = 0;
+            som.play();
+          }
+
+        } else {
+          box.textContent = " Buzzer Desligado";
+          box.className = "status-box inativo";
+        }
+
+        ultimoEstado = valor;
+      })
+      .catch(() => {
+        const box = document.getElementById("statusBuzzer");
+        box.textContent = " Erro ao conectar";
+        box.className = "status-box inativo";
+      });
+    }
+
+    atualizarStatus();
+    setInterval(atualizarStatus, 5000);
+  </script>
+
+</body>
+</html>
