@@ -1,0 +1,114 @@
+#include <WiFi.h>
+#include <PubSubClient.h>
+
+// -------------------- CONFIGURAÇÕES DE REDE --------------------
+const char* ssid = "Wokwi-GUEST";
+const char* password = "";
+
+// -------------------- CONFIGURAÇÕES MQTT --------------------
+const char* mqtt_server = "";  // IP do seu IoT Agent MQTT
+const int mqtt_port = 1883;
+const char* mqtt_user = "";
+const char* mqtt_pass = "";
+
+// -------------------- IDENTIFICAÇÃO --------------------
+const char* device_id = "";    // id do seu dispositivo
+const char* api_key = "TEF";   // geralmente o nome do serviço FIWARE
+
+// -------------------- PINOS --------------------
+#define LED_PIN 2
+#define LDR_PIN 34
+#define BUZZER_PIN 13
+
+WiFiClient espClient;
+PubSubClient client(espClient);
+
+// -------------------- VARIÁVEIS --------------------
+bool alarmState = false;
+int luminosityThreshold = 800;
+
+// -------------------- WIFI --------------------
+void setup_wifi() {
+  Serial.println();
+  Serial.print("Conectando em ");
+  Serial.println(ssid);
+  WiFi.begin(ssid, password);
+
+  while (WiFi.status() != WL_CONNECTED) {
+    delay(500);
+    Serial.print(".");
+  }
+
+  Serial.println("\n WiFi conectado!");
+  Serial.print("IP: ");
+  Serial.println(WiFi.localIP());
+}
+
+// -------------------- RECONEXÃO MQTT --------------------
+void reconnect() {
+  while (!client.connected()) {
+    Serial.print("Tentando conectar ao MQTT... ");
+    if (client.connect(device_id, mqtt_user, mqtt_pass)) {
+      Serial.println(" Conectado!");
+    } else {
+      Serial.print("Falhou, rc=");
+      Serial.print(client.state());
+      Serial.println(" — tentando novamente em 5s");
+      delay(5000);
+    }
+  }
+}
+
+// -------------------- ENVIO PARA IOT AGENT --------------------
+void sendToFiware(int buzzerValue, bool alarmState) {
+  char payload[50];
+  sprintf(payload, "a|%d|s|%s", buzzerValue, alarmState ? "ON" : "OFF");
+
+  String topic = String("/") + api_key + "/" + device_id + "/attrs";
+  client.publish(topic.c_str(), payload);
+
+  Serial.print(" Enviado para ");
+  Serial.println(topic);
+  Serial.print("Payload: ");
+  Serial.println(payload);
+}
+
+// -------------------- SETUP --------------------
+void setup() {
+  Serial.begin(115200);
+  pinMode(LED_PIN, OUTPUT);
+  pinMode(BUZZER_PIN, OUTPUT);
+  digitalWrite(LED_PIN, LOW);
+  digitalWrite(BUZZER_PIN, LOW);
+
+  setup_wifi();
+  client.setServer(mqtt_server, mqtt_port);
+
+  Serial.println(" Sistema iniciado — monitorando luminosidade...");
+}
+
+// -------------------- LOOP --------------------
+void loop() {
+  if (!client.connected()) reconnect();
+  client.loop();
+
+  int luminosity = analogRead(LDR_PIN);
+  Serial.print(" Luminosidade: ");
+  Serial.println(luminosity);
+
+  if (luminosity < luminosityThreshold && !alarmState) {
+    alarmState = true;
+    tone(BUZZER_PIN, 1000);
+    digitalWrite(LED_PIN, HIGH);
+    Serial.println(" Alarme ativado!");
+  } 
+  else if (luminosity >= luminosityThreshold && alarmState) {
+    alarmState = false;
+    noTone(BUZZER_PIN);
+    digitalWrite(LED_PIN, LOW);
+    Serial.println(" Alarme desativado!");
+  }
+
+  sendToFiware(alarmState ? 1 : 0, alarmState);
+  delay(5000);
+}
