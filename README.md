@@ -1,199 +1,262 @@
-🏆 SkillShift – Sistema IoT com ESP32, MQTT e Dashboard Web
+ SkillShift – Sistema IoT de Monitoramento com Buzzer (FIWARE + ESP32)
 
-Projeto desenvolvido por: André Monteiro — RM 562397
-                          Arthur Pastorello RM 562345
-                          Gustavo Estevam Cocchi RM 562472
-                          José Henrique Escobar -RM: 564419
+Este projeto consiste na criação de um sistema IoT capaz de monitorar eventos e acionar um buzzer por meio da plataforma FIWARE, utilizando um ESP32, além de uma interface web que exibe o status do buzzer em tempo real.
 
-📌 Sobre o Projeto
+O objetivo é demonstrar um fluxo completo IoT:
+Dispositivo → MQTT → FIWARE Orion → Interface Web
 
-Este projeto implementa um sistema IoT utilizando ESP32, MQTT e uma interface web moderna, para monitoramento do estado de um buzzer de alerta ativado de forma remota.
+ Integrantes do Grupo
+Nome	RM
+Arthur Pastorello	562345
+Gustavo Estevam Cocchi	562472
+André Dominicis Monteiro	562397
+José Henrique Escobar	564419
+
+ Índice
+
+ Visão Geral
+
+ Tecnologias Utilizadas
+
+ Arquitetura do Projeto
+
+ Hardware Necessário
+
+ Configuração do FIWARE
+
+ Código do ESP32
+
+ Interface Web
+
+ Testando o Sistema
+
+ Passo a Passo Completo para Replicar
+
+ Estrutura do Projeto
+
+ Licença
+
+ 1. Visão Geral
+
+O sistema monitora o status de um dispositivo IoT no FIWARE e, quando recebe um comando, ativa ou desativa um buzzer físico conectado ao ESP32.
+Além disso, existe uma página web que lê diretamente o status da entidade no FIWARE e exibe:
+
+ Buzzer desligado
+
+ Buzzer ativado (com alerta visual + som)
+
+O ESP32 se comunica com o FIWARE utilizando MQTT.
+
+ 2. Tecnologias Utilizadas
+ Backend IoT:
+
+FIWARE Orion Context Broker
+
+FIWARE IoT Agent MQTT
+
+Mosquitto ou Broker MQTT da AWS
+
+ Hardware:
+
+ESP32 DevKit v1
+
+Buzzer ativo (5V)
+
+ Front-end:
+
+HTML5, CSS3, JavaScript
+
+Fetch API para consumir FIWARE
+
+ 3. Arquitetura do Projeto
+ESP32 → MQTT → IoT Agent → Orion Context Broker → Interface Web
 
 
-🎯 Objetivos do Sistema
+Cada alteração feita pelo ESP32 é registrada no FIWARE, e a interface web consulta diretamente o Context Broker.
 
-Ler o estado do buzzer enviado pelo ESP32.
+ 4. Hardware Necessário
+Componente	Quantidade
+ESP32 DevKit	1
+Buzzer ativo	1
+Jumpers	3
+Protoboard	1
+ Ligações do Buzzer
 
-Publicar/receber mensagens via MQTT.
+Buzzer + → GPIO 12
 
-Registrar o estado no FIWARE Orion Context Broker (NGSI-v2).
+Buzzer – → GND
 
-Exibir em uma interface web o status do buzzer em tempo real.
+ 5. Configuração no FIWARE
 
-Reproduzir um som de alerta ao detectar transição "desligado → ligado".
+Você deve registrar o dispositivo no IoT Agent:
 
-Ser acessível via celular com design adaptado.
+1️ Criar serviço:
+{
+  "services": [{
+    "apikey": "2007",
+    "cbroker": "http://orion:1026",
+    "entity_type": "device",
+    "resource": "/iot/json"
+  }]
+}
 
-🛠️ Componentes Físicos
+2️ Registrar dispositivo:
+{
+  "devices": [
+    {
+      "device_id": "device2007",
+      "entity_name": "urn:ngsi-ld:device:2007",
+      "entity_type": "device",
+      "protocol": "PDI-IoTA-UltraLight",
+      "transport": "MQTT",
+      "attributes": [
+        { "object_id": "a", "name": "Buzzer", "type": "Number" }
+      ],
+      "commands": [
+        { "name": "on", "type": "command" },
+        { "name": "off", "type": "command" }
+      ]
+    }
+  ]
+}
 
-ESP32 DevKit
-
-Buzzer piezoelétrico
-
-Fonte 5V
-
-Conexão Wi-Fi
-
-Broker MQTT (IP variável do laboratório)
-
-🔌 Funcionamento do ESP32
+ 6. Código do ESP32
 
 O ESP32:
 
-Conecta-se ao Wi-Fi.
+ Conecta ao Wi-Fi
+ Conecta ao broker MQTT
+ Lê comandos do FIWARE
+ Liga/desliga o buzzer
 
-Conecta ao broker MQTT.
+(O código completo está incluído no zip do projeto.)
 
-Publica mensagens no tópico configurado (ex: /skillshift/buzzer).
+ 7. Interface Web
 
-Envia ao FIWARE Orion o atributo a indicando o estado:
+A página web:
 
-Valor	Significado
-0	Buzzer desligado
-1	Buzzer ligado / Alerta
+ Consulta o FIWARE a cada 5 segundos
+ Exibe status em tempo real
+ Reproduz som quando o buzzer é ligado
+ Usa design estilizado baseado no visual da SkillShift
 
-Exemplo de payload enviado ao Orion:
-
+ 8. Como Testar o Sistema
+Teste 1 – Ativar manualmente via API:
+POST /v2/entities/urn:ngsi-ld:device:2007/attrs
 {
-  "a": {
-    "type": "Number",
-    "value": 1
-  }
+  "on": { "type": "command" }
 }
 
-🌐 Funcionamento da Dashboard Web
+Teste 2 – Ver status via navegador:
 
-A página HTML:
+Acesse:
 
-✔ Busca a cada 5s o valor do atributo do buzzer no ORION:
-
-GET /v2/entities/urn:ngsi-ld:device:2007/attrs/a
+status.html
 
 
-✔ Interpreta o valor (0 ou 1).
-✔ Modifica o layout visual:
+O painel mostrará:
 
-Vermelho piscando quando ativo
+ Buzzer Ativado
 
-Azul estático quando inativo
+ Buzzer Desligado
 
-✔ Reproduz um som caso o buzzer acabe de ser ativado.
-✔ Exibe tudo com design estilizado inspirado na identidade SkillShift.
+ 9. PASSO A PASSO COMPLETO PARA REPLICAR O PROJETO
+ PASSO 1 – Separar os Materiais
 
-🎨 Design
+Pegue:
 
-O design foi totalmente remodelado baseado no estilo do aplicativo SkillShift:
+ESP32
 
-Gradiente futurista
+Buzzer
 
-Tipografia mais moderna
+Jumpers
 
-Cards arredondados
+Cabo USB
 
-Animações suaves
+ PASSO 2 – Montagem do Circuito
 
-Foco em visual mobile
+Conecte o buzzer na protoboard.
 
-Título e identidade visual alterados para SkillShift
+Ligue o + do buzzer no GPIO 12 do ESP32.
 
-📁 Estrutura do Projeto
-/skillshift-iot
- ├── esp32/
- │    ├── skillshift_buzzer.ino
- │    └── wifi_mqtt_config.h
- │
- ├── web/
- │    └── index.html   <- Dashboard de status do buzzer
- │
- ├── docs/
- │    └── README.md
- │
- └── media/
-      └── videos reduzidos (para envio no sistema)
+Ligue o – em GND.
 
-🧪 Testes Realizados
+Conecte o ESP32 ao PC.
 
-✔ Conexão Wi-Fi estável
-✔ Publicação MQTT validada em broker externo
-✔ Endpoint FIWARE respondendo corretamente
-✔ Dashboard detectando transições 0 → 1
-✔ Teste com áudio de alarme funcionando no celular
-✔ Layout responsivo testado em:
+ PASSO 3 – Configurar o FIWARE
 
-Android
+Suba um ambiente FIWARE (Docker).
 
-iPhone
+Inicie:
 
-Navegador desktop
+Orion Context Broker
 
-🚀 Como Executar
-1. Subir o ESP32
+IoT Agent MQTT
 
-Configurar o Wi-Fi
+Mosquitto
 
-Configurar IP do broker MQTT
+Registre o serviço.
 
-Fazer upload do código no Arduino IDE
+Registre o dispositivo IoT.
 
-2. Executar o FIWARE Orion
+ PASSO 4 – Configurar o Arduino IDE
 
-Confirmar porta aberta: 1026
+Instale suporte ao ESP32:
 
-Registrar entidade do dispositivo
-
-3. Abrir a Interface Web
-
-Basta abrir o arquivo:
-
-web/index.html
+https://raw.githubusercontent.com/espressif/arduino-esp32/gh-pages/package_esp32_index.json
 
 
-Não requer servidor — funciona somente com acesso direto.
+Instale a biblioteca:
 
-📡 Comunicação MQTT
+PubSubClient
 
-Tópico sugerido:
+Abra o código do projeto.
 
-/skillshift/buzzer
+Configure:
 
+SSID e senha do Wi-Fi
 
-Payload padrão:
+IP do IoT Agent
 
-1   → ativado
-0   → desligado
+API Key
 
-🔔 Notificação Sonora
+ID do dispositivo
 
-Ao detectar o estado 1, a dashboard toca automaticamente:
+ PASSO 5 – Fazer Upload para o ESP32
 
-https://actions.google.com/sounds/v1/alarms/beep_short.ogg
+Escolha a placa ESP32 DevKit v1.
 
+Porta correta → COMx.
 
-O áudio só toca quando ocorre uma troca de estado, evitando repetição desnecessária.
+Clique Upload.
 
-📱 Compatibilidade Mobile
+ PASSO 6 – Testar Conexão
 
-A interface foi ajustada para caber perfeitamente:
+Abra o Monitor Serial.
 
-Sem rolagem
+Você deve ver mensagens como:
 
-Texto centralizado
+Conectado ao Wi-Fi
+Conectado ao Broker MQTT
+Aguardando comandos...
 
-Blocos responsivos
+ PASSO 7 – Subir Página Web
 
-Botões e fontes dimensionados para tela de celular
+Salve o arquivo HTML fornecido.
 
-🧩 Expansões Futuras
+Abra no navegador.
 
-Adicionar sistema de login
+O painel mostrará o estado do buzzer em tempo real.
 
-Histórico de alertas
+ PASSO 8 – Acionar o Buzzer
 
-Conexão via WebSockets ao Orion
+Você pode ativar via:
 
-Dashboard com gráficos de eventos
+✔ FIWARE API
+✔ IoT Agent
+✔ MQTT Publish Manual
 
-Controle manual do buzzer via web
+Se tudo estiver ok, o buzzer toca e o site exibe o status em tempo real.
 
 <img width="1864" height="921" alt="image" src="https://github.com/user-attachments/assets/78ed58e3-895f-44bd-b825-b878c5fd0ba4" />
 
