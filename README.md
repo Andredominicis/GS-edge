@@ -261,7 +261,8 @@ Você pode ativar via:
  LINKS:
 
  link do projeto no Wokwi: https://wokwi.com/projects/447548990685211649
- limk do video de demonstraçao: https://youtu.be/Q4ASzFgEXnU
+ 
+ link do video de demonstraçao: https://youtu.be/Q4ASzFgEXnU
 
 Se tudo estiver ok, o buzzer toca e o site exibe o status em tempo real.
 
