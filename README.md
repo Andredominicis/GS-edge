@@ -6,11 +6,13 @@ O objetivo é demonstrar um fluxo completo IoT:
 Dispositivo → MQTT → FIWARE Orion → Interface Web
 
  Integrantes do Grupo
-Nome	RM
-Arthur Pastorello	562345
-Gustavo Estevam Cocchi	562472
-André Dominicis Monteiro	562397
-José Henrique Escobar	564419
+| Nome                         | RM     |
+| ---------------------------- | ------ |
+| **Arthur Pastorello**        | 562345 |
+| **Gustavo Estevam Cocchi**   | 562472 |
+| **André Dominicis Monteiro** | 562397 |
+| **José Henrique Escobar**    | 564419 |
+
 
  Índice
 
