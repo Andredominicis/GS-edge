@@ -8,10 +8,9 @@ Dispositivo → MQTT → FIWARE Orion → Interface Web
  Integrantes do Grupo
 | Nome                         | RM     |
 | ---------------------------- | ------ |
-| **Arthur Pastorello**        | 562345 |
-| **Gustavo Estevam Cocchi**   | 562472 |
+| **Kazys Tatarunas**        | 564020 |
 | **André Dominicis Monteiro** | 562397 |
-| **José Henrique Escobar**    | 564419 |
+| **Guilherme acacio**    | 562475 |
 
 
  Índice
